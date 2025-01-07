@@ -1,0 +1,23 @@
+run:
+  timeout: 3m
+
+linters:
+  enable-all: true
+  disable:
+    - exportloopref # deprecated
+    - gochecknoinits
+    - gochecknoglobals
+
+linters-settings:
+  depguard:
+    rules:
+      main:
+        list-mode: lax
+        deny:
+          - pkg: skip
+
+issues:
+  exclude-rules:
+    - path: "example/main\\.go"
+      linters:
+        - forbidigo
