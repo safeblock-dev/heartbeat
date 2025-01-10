@@ -13,7 +13,7 @@ var filePath string
 // init initializes the global file path using the default file path or environment variable.
 func init() {
 	var ok bool
-	filePath, ok = os.LookupEnv("HEARTBEAT_FILE_PATH")
+	filePath, ok = os.LookupEnv("HEARTBEAT_FILE")
 	if !ok {
 		filePath = defaultFilePath
 	}
