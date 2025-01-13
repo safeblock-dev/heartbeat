@@ -9,9 +9,10 @@ import (
 
 const defaultFilePath = "/tmp/healthy"
 
-var filePath string
-
-var timestamp = new(atomic.Int64) // second.
+var (
+	filePath  string
+	timestamp = new(atomic.Int64)
+) // second.
 
 // init initializes the global file path using the default file path or environment variable.
 func init() {
