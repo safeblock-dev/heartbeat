@@ -26,9 +26,9 @@ func init() {
 // Refresh creates or updates the timestamp file with the current time.
 // It skips calls if refreshed within the last second.
 func Refresh() {
-	current := time.Now()
-	if timestamp.Load() == current.Unix() {
-		return // skip.
+  now := time.Now().Unix()
+	if timestamp.Swap(now) == now {
+		return // Skip if already refreshed this second
 	}
 
 	file, err := os.Create(filePath)

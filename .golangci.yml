@@ -7,6 +7,7 @@ linters:
     - exportloopref # deprecated
     - gochecknoinits
     - gochecknoglobals
+    - wsl
 
 linters-settings:
   depguard:
