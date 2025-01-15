@@ -54,6 +54,23 @@ export HEARTBEAT_FILE=/path/to/custom/heartbeat.timestamp
 
 The package will use the specified file path instead of the default (`heartbeat.timestamp`).
 
+### File Check Script
+
+A [script](check_liveness.sh) can be used alongside this package to check the heartbeat file. This script verifies the file's existence and age, returning a status of 0 if the file has been updated within a specified timeout (default: 30 seconds) or 1 otherwise.
+
+#### Example Integration
+
+You can integrate this script into your application for health checks. For example, in Kubernetes, it can be used as a liveness probe:
+
+```yaml
+livenessProbe:
+  exec:
+    command:
+    - "/path/to/check_liveness.sh"
+  initialDelaySeconds: 5
+  periodSeconds: 10
+```
+
 ## Logging
 
 The package logs warnings in case of errors during file operations, such as:
