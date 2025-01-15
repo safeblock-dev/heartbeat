@@ -7,17 +7,18 @@ import (
 	"time"
 )
 
-const defaultFilePath = "heartbeat.timestamp"
+const defaultFilePath = "/tmp/healthy"
 
 var (
-	filePath      string
-	lastRefreshTS = new(atomic.Int64)
-)
+	filePath  string
+	timestamp = new(atomic.Int64)
+) // second.
 
 // init initializes the global file path using the default file path or environment variable.
 func init() {
-	filePath = os.Getenv("HEARTBEAT_FILE")
-	if filePath == "" {
+	var ok bool
+	filePath, ok = os.LookupEnv("HEARTBEAT_FILE")
+	if !ok {
 		filePath = defaultFilePath
 	}
 }
@@ -25,21 +26,27 @@ func init() {
 // Refresh creates or updates the timestamp file with the current time.
 // It skips calls if refreshed within the last second.
 func Refresh() {
-	now := time.Now().Unix()
-	if lastRefreshTS.Swap(now) == now {
-		return // Skip if already refreshed this second
+	current := time.Now().Local()
+	if timestamp.Load() == current.Unix() {
+		return // skip.
 	}
 
-	file, err := os.Create(filePath)
-	if err != nil {
-		log.Printf("[WARNING] Heartbeat Refresh failed: could not create or open file '%s': %v", filePath, err)
-
-		return
-	}
-	defer file.Close()
-
-	_, err = file.WriteString(time.Now().Format(time.RFC3339))
-	if err != nil {
-		log.Printf("[WARNING] Heartbeat Refresh failed: could not write to file '%s': %v", filePath, err)
+	_, err := os.Stat(filePath)
+	switch {
+	case os.IsNotExist(err):
+		var file *os.File
+		file, err = os.Create(filePath)
+		if err != nil {
+			log.Printf("heartbeat: [ERROR] Heartbeat Refresh failed: could not create or open file '%s': %v", filePath, err)
+		}
+		defer file.Close()
+	case err != nil:
+		log.Printf("heartbeat: [ERROR] Heartbeat Refresh failed: could not create or open file '%s': %v", filePath, err)
+	default:
+		err = os.Chtimes(filePath, current, current)
+		if err != nil {
+			log.Printf("heartbeat: [ERROR] Heartbeat Refresh failed: could not modification times '%s': %v", filePath, err)
+		}
+		timestamp.Store(current.Unix())
 	}
 }
