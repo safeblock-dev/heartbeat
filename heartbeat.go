@@ -1,6 +1,7 @@
 package heartbeat
 
 import (
+	"context"
 	"log"
 	"os"
 	"sync/atomic"
@@ -26,7 +27,7 @@ func init() {
 // Refresh creates or updates the timestamp file with the current time.
 // It skips calls if refreshed within the last second.
 func Refresh() {
-  now := time.Now().Unix()
+	now := time.Now().Unix()
 	if timestamp.Swap(now) == now {
 		return // Skip if already refreshed this second
 	}
@@ -37,4 +38,17 @@ func Refresh() {
 	} else {
 		file.Close()
 	}
+}
+
+func Liveness(ctx context.Context, duration time.Duration) {
+	go func() {
+		for {
+			select {
+			case <-time.After(duration):
+				Refresh()
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 }
